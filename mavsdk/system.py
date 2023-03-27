@@ -19,7 +19,6 @@ from . import ftp
 from . import geofence
 from . import gimbal
 from . import info
-from . import landing_target
 from . import log_files
 from . import manual_control
 from . import mission
@@ -29,6 +28,7 @@ from . import mocap
 from . import offboard
 from . import param
 from . import param_server
+from . import precision_target
 from . import rtk
 from . import server_utility
 from . import shell
@@ -143,7 +143,7 @@ class System:
         self._plugins["geofence"] = geofence.Geofence(plugin_manager)
         self._plugins["gimbal"] = gimbal.Gimbal(plugin_manager)
         self._plugins["info"] = info.Info(plugin_manager)
-        self._plugins["landing_target"] = landing_target.LandingTarget(plugin_manager)
+        self._plugins["precision_target"] = precision_target.PrecisionTarget(plugin_manager)
         self._plugins["log_files"] = log_files.LogFiles(plugin_manager)
         self._plugins["manual_control"] = manual_control.ManualControl(plugin_manager)
         self._plugins["mission"] = mission.Mission(plugin_manager)
@@ -252,10 +252,10 @@ class System:
         return self._plugins["info"]
 
     @property
-    def landing_target(self) -> landing_target.LandingTarget:
-        if "landing_target" not in self._plugins:
-            raise RuntimeError(self.error_uninitialized("LandingTarget"))
-        return self._plugins["landing_target"]
+    def precision_target(self) -> precision_target.PrecisionTarget:
+        if "precision_target" not in self._plugins:
+            raise RuntimeError(self.error_uninitialized("PrecisionTarget"))
+        return self._plugins["precision_target"]
 
     @property
     def log_files(self) -> log_files.LogFiles:

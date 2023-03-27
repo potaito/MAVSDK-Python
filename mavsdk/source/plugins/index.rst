@@ -35,3 +35,4 @@ Plugins
    tune
    camera_server
    rtk
+   precision_target
