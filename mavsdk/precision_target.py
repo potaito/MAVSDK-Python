@@ -6,6 +6,42 @@ from . import precision_target_pb2, precision_target_pb2_grpc
 from enum import Enum
 
 
+class ObservationFrame(Enum):
+    """
+     Target Observation Frame type.
+
+     Values
+     ------
+     LOCAL_NED
+          NED local tangent frame (x: North, y: East, z: Down) with origin fixed relative to earth.
+
+     BODY_FRD
+          FRD local frame aligned to the vehicle's attitude (x: Forward, y: Right, z: Down) with an origin that travels with vehicle.
+
+     """
+
+    
+    LOCAL_NED = 0
+    BODY_FRD = 1
+
+    def translate_to_rpc(self):
+        if self == ObservationFrame.LOCAL_NED:
+            return precision_target_pb2.OBSERVATION_FRAME_LOCAL_NED
+        if self == ObservationFrame.BODY_FRD:
+            return precision_target_pb2.OBSERVATION_FRAME_BODY_FRD
+
+    @staticmethod
+    def translate_from_rpc(rpc_enum_value):
+        """ Parses a gRPC response """
+        if rpc_enum_value == precision_target_pb2.OBSERVATION_FRAME_LOCAL_NED:
+            return ObservationFrame.LOCAL_NED
+        if rpc_enum_value == precision_target_pb2.OBSERVATION_FRAME_BODY_FRD:
+            return ObservationFrame.BODY_FRD
+
+    def __str__(self):
+        return self.name
+
+
 class PositionLocal:
     """
      Position type in sensor frame coordinates
@@ -247,7 +283,7 @@ class PrecisionTarget(AsyncBase):
         return PrecisionTargetResult.translate_from_rpc(response.precision_target_result)
     
 
-    async def publish_position_relative(self, position_local):
+    async def publish_position_relative(self, position_local, observation_frame):
         """
          Publish precision target measurement recorded by a sensor onboard the drone
 
@@ -255,6 +291,9 @@ class PrecisionTarget(AsyncBase):
          ----------
          position_local : PositionLocal
               The next precision target position
+
+         observation_frame : ObservationFrame
+              The coordinate frame of the local position
 
          Raises
          ------
@@ -267,11 +306,15 @@ class PrecisionTarget(AsyncBase):
         position_local.translate_to_rpc(request.position_local)
                 
             
+        
+        request.observation_frame = observation_frame.translate_to_rpc()
+                
+            
         response = await self._stub.PublishPositionRelative(request)
 
         
         result = self._extract_result(response)
 
         if result.result != PrecisionTargetResult.Result.SUCCESS:
-            raise PrecisionTargetError(result, "publish_position_relative()", position_local)
+            raise PrecisionTargetError(result, "publish_position_relative()", position_local, observation_frame)
         
